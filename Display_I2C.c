@@ -2,7 +2,6 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include "hardware/pio.h"
-#include "hardware/uart.h"
 #include "inc/ledMatrix.h"
 #include "inc/font.h"
 #include "inc/ssd1306.h"
@@ -15,11 +14,6 @@
 #define I2C_SCL 15
 #define address 0x3C
 
-//UART defines
-#define UART_ID uart0       //define a uart a ser utilizada, nesse caso, uart0
-#define BAUD_RATE 115200    //define o baud rate como 115200
-#define UART_TX_PIN 0       //pino 0 para tx da uart0
-#define UART_RX_PIN 1       //pino 1 para rx da uart0
 
 #define buttonA 5           //pino do botão A
 #define buttonB 6           //pino do botão B
@@ -69,37 +63,37 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
         if(gpio == buttonA)
         {
-            uart_puts(UART_ID, "\n\n\rInterrupção em A.");  
+            printf("\n\n\rInterrupção em A.");  
             gpio_put(rgb_led[1], !gpio_get(rgb_led[1]));
 
             ssd1306_draw_string(&ssd, "LED Verde", 30, 20); // Desenha uma string    
             if(gpio_get(rgb_led[1]))
             {
                 ssd1306_draw_string(&ssd, "Ligado", 42, 30);
-                uart_puts(UART_ID,  "\n\rLED verde ligado.\n");
-                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+                printf( "\n\rLED verde ligado.\n");
+                printf("\n\rInsira o caracter que deseja imprimir: ");
             }else
             {
                 ssd1306_draw_string(&ssd, "Desligado", 30, 30);
-                uart_puts(UART_ID,  "\n\rLED verde desligado.\n");
-                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+                printf( "\n\rLED verde desligado.\n");
+                printf("\n\rInsira o caracter que deseja imprimir: ");
             }
 
         }else if (gpio == buttonB)    
         {
-            uart_puts(UART_ID, "\n\n\rInterrupção em B.");
+            printf("\n\n\rInterrupção em B.");
             gpio_put(rgb_led[2], !gpio_get(rgb_led[2]));
             ssd1306_draw_string(&ssd, "LED Azul", 30, 20); // Desenha uma string    
             if(gpio_get(rgb_led[2]))
             {
                 ssd1306_draw_string(&ssd, "Ligado", 42, 30);
-                uart_puts(UART_ID,  "\n\rLED azul ligado.\n");
-                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+                printf( "\n\rLED azul ligado.\n");
+                printf("\n\rInsira o caracter que deseja imprimir: ");
             }else
             {
                 ssd1306_draw_string(&ssd, "Desligado", 30, 30);
-                uart_puts(UART_ID,  "\n\rLED azul desligado.\n");
-                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+                printf( "\n\rLED azul desligado.\n");
+                printf("\n\rInsira o caracter que deseja imprimir: ");
 
             }   
         }  
@@ -182,23 +176,12 @@ int main()
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
-    // inicializa a uart
-    uart_init(UART_ID, BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    
-    uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+    printf("\n\rInsira o caracter que deseja imprimir: ");
 
-    
-
-    while (true) {
-        if(uart_is_readable(UART_ID))
-        {   
-            printf("\n\nTeste\n\n");
-            c = uart_getc(UART_ID);
-            uart_puts(UART_ID, "\n\rCaractere Inserido: ");
-            uart_putc(UART_ID, c);
-            uart_puts(UART_ID, "\n\n\rInsira o caracter que deseja imprimir: ");
+    while (true) { 
+            scanf("%c", &c);
+            printf("\n\rCaractere Inserido: %c", c);
+            printf("\n\n\rInsira o caracter que deseja imprimir: ");
             
             if(c == 'c' || c == 'C')
             {
@@ -219,8 +202,10 @@ int main()
 
                 ssd1306_fill(&ssd, !color); // Limpa o display
                 ssd1306_send_data(&ssd);
-                uart_puts(UART_ID, "\n\n\rTela Desligada! ");
-                uart_puts(UART_ID, "\n\n\rInsira o caracter que deseja imprimir: ");
+                printf("\n\n\rTela Desligada! ");
+                printf("\n\n\rInsira o caracter que deseja imprimir: ");
+
+                checkDigit(c);  // Checa se o caractere digitado foi um digito de 0 a 9 e o desenha na matriz 5x5 ws2812
 
                 continue;
             }
@@ -233,5 +218,4 @@ int main()
             checkDigit(c);  // Checa se o caractere digitado foi um digito de 0 a 9 e o desenha na matriz 5x5 ws2812
 
         }
-     }
 }
