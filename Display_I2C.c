@@ -24,7 +24,9 @@ ssd1306_t ssd; // Inicializa a estrutura do display
 uint last_time = 0;
 
 const uint rgb_led[3] = {13,11,12}; //pinos do led rgb
-bool g, b = 0;  //auxiliares para a controle do display
+uint r_intensity = 30;
+uint g_intensity = 0;
+uint b_intensity = 30;
 
 void init_rgb(const uint *rgb)
 {
@@ -108,34 +110,34 @@ void checkDigit(char c) {
     switch (c)
     {
     case '0':
-        print_frame(frame0, 100,0,100);
+        print_frame(frame0, r_intensity, g_intensity, b_intensity);
         break;
     case '1':
-        print_frame(frame1, 100,0,100);
+        print_frame(frame1, r_intensity, g_intensity, b_intensity);
         break;
     case '2':
-        print_frame(frame2, 100,0,100);
+        print_frame(frame2, r_intensity, g_intensity, b_intensity);
         break;
     case '3':
-        print_frame(frame3, 100,0,100);
+        print_frame(frame3, r_intensity, g_intensity, b_intensity);
         break;
     case '4':
-        print_frame(frame4, 100,0,100);
+        print_frame(frame4, r_intensity, g_intensity, b_intensity);
         break;
     case '5':
-        print_frame(frame5, 100,0,100);
+        print_frame(frame5, r_intensity, g_intensity, b_intensity);
         break;
     case '6':
-        print_frame(frame6, 100,0,100);
+        print_frame(frame6, r_intensity, g_intensity, b_intensity);
         break;
     case '7':
-        print_frame(frame7, 100,0,100);
+        print_frame(frame7, r_intensity, g_intensity, b_intensity);
         break;
     case '8':
-        print_frame(frame8, 100,0,100);
+        print_frame(frame8, r_intensity, g_intensity, b_intensity);
         break;
     case '9':
-        print_frame(frame9, 100,0,100);
+        print_frame(frame9, r_intensity, g_intensity, b_intensity);
         break;
     default:
         npClear();
