@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -5,6 +7,7 @@
 
 #define LED_COUNT 25
 #define LED_PIN 7
+
 
 struct pixel_t { 
     uint32_t G, R, B;                // Componentes de cor: Verde, Vermelho e Azul
@@ -17,6 +20,7 @@ typedef pixel_t npLED_t;            // Alias para facilitar o uso no contexto de
 npLED_t leds[LED_COUNT];            // Array para armazenar o estado de cada LED
 PIO np_pio;                         // Variável para referenciar a instância PIO usada
 uint sm;                            // Variável para armazenar o número do state machine usado
+
 
 int getIndex(int x, int y) {
     // Se a linha for par (0, 2, 4), percorremos da esquerda para a direita.
@@ -59,13 +63,6 @@ void npSetLED(const uint index, const uint8_t r, const uint8_t g, const uint8_t 
     leds[index].B = b;                                    // Definir componente azul
 }
 
-// Função para limpar (apagar) todos os LEDs
-void npClear() 
-{
-    for (uint i = 0; i < LED_COUNT; ++i)                  // Iterar sobre todos os LEDs
-        npSetLED(i, 0, 0, 0);                             // Definir cor como preta (apagado)
-}
-
 // Função para atualizar os LEDs no hardware
 void npWrite() 
 {
@@ -75,6 +72,15 @@ void npWrite()
         pio_sm_put_blocking(np_pio, sm, leds[i].R<<24);       // Enviar componente vermelho
         pio_sm_put_blocking(np_pio, sm, leds[i].B<<24);       // Enviar componente azul
     }
+}
+
+// Função para limpar (apagar) todos os LEDs
+void npClear() 
+{
+    for (uint i = 0; i < LED_COUNT; ++i)                  // Iterar sobre todos os LEDs
+      {  npSetLED(i, 0, 0, 0);    }                        // Definir cor como preta (apagado)
+
+    npWrite();
 }
 
 void print_frame(int frame[5][5], float red_brightness, float green_brightness, float blue_brightness)

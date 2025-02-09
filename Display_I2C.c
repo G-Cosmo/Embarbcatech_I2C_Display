@@ -3,7 +3,9 @@
 #include "hardware/i2c.h"
 #include "hardware/pio.h"
 #include "hardware/uart.h"
-#include "ledMatrix.h"
+#include "inc/ledMatrix.h"
+#include "inc/font.h"
+#include "inc/ssd1306.h"
 
 // I2C defines
 // This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
@@ -12,19 +14,14 @@
 #define I2C_SDA 8
 #define I2C_SCL 9
 
+//UART defines
+#define UART_ID uart0       //define a uart a ser utilizada, nesse caso, uart0
+#define BAUD_RATE 115200    //define o baud rate como 115200
+#define UART_TX_PIN 0       //pino 0 para tx da uart0
+#define UART_RX_PIN 1       //pino 1 para rx da uart0
 
-// UART defines
-// By default the stdout UART is `uart0`, so we will use the second one
-#define UART_ID uart1
-#define BAUD_RATE 115200
-
-// Use pins 4 and 5 for UART1
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
-
-#define buttonA 5
-#define buttonB 6
+#define buttonA 5           //pino do botão A
+#define buttonB 6           //pino do botão B
 
 uint last_time = 0;
 
@@ -55,7 +52,7 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 {
     // Obtém o tempo atual em microssegundos
     uint32_t current_time = to_us_since_boot(get_absolute_time());
-    printf("\n interrupção1");
+    //printf("\n interrupção1");
     // Verifica se passou tempo suficiente desde o último evento
     if (current_time - last_time > 200000) // 200 ms de debouncing
     {
@@ -64,16 +61,14 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
         if(gpio == buttonA)
         {
-            printf("\n interrupção em A. Estado do LED verde alternado.");  
+            uart_puts(UART_ID, "\n\r interrupção em A. Estado do LED verde alternado.");  
             gpio_put(rgb_led[1], !gpio_get(rgb_led[1]));
-            print_frame(frame1, 100, 100, 0);
             //falta enviar a mensagem para o display
 
         }else if (gpio == buttonB)    
         {
-            printf("\n interrupção em B. Estado do LED azul alternado.");
+            uart_puts(UART_ID, "\n\r interrupção em B. Estado do LED azul alternado.");
             gpio_put(rgb_led[2], !gpio_get(rgb_led[2]));
-            print_frame(frame2, 100, 100, 0);
             //falta enviar a mensagem para o display
 
         }   
@@ -85,13 +80,14 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
 int main()
 {
-    stdio_init_all();
-    init_rgb(rgb_led);
-    init_buttons();
+    char c;
 
-    npInit(LED_PIN);
-    npClear();
-    npWrite();
+    stdio_init_all();       //iniciliaza a lib stdio
+    init_rgb(rgb_led);      //inicializa o led rgb
+    init_buttons();         //inicializa os botões
+
+    npInit(LED_PIN);        //inicializa matriz de led
+    npClear();              //limpa a matriz
 
     gpio_set_irq_enabled_with_callback(buttonA, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     gpio_set_irq_enabled_with_callback(buttonB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
@@ -106,12 +102,10 @@ int main()
     // gpio_pull_up(I2C_SCL);
     // // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
 
-    // // Set up our UART
-    // uart_init(UART_ID, BAUD_RATE);
-    // // Set the TX and RX pins by using the function select on the GPIO
-    // // Set datasheet for more information on function select
-    // gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    // gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    // inicializa a uart
+    uart_init(UART_ID, BAUD_RATE);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
     
     // // Use some the various UART functions to send out data
     // // In a default system, printf will also output via the default UART
@@ -120,10 +114,54 @@ int main()
     // uart_puts(UART_ID, " Hello, UART!\n");
     
     // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
-
+    uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
 
     while (true) {
-        printf("Main loop\n");
-        sleep_ms(1000);
+        if(uart_is_readable(UART_ID))
+        {   
+            c = uart_getc(UART_ID);
+            uart_puts(UART_ID, "\n\rCaractere Inserido: ");
+            uart_putc(UART_ID, c);
+            uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+
+
+            switch (c)
+            {
+            case '0':
+                print_frame(frame0, 100,0,100);
+                break;
+            case '1':
+                print_frame(frame1, 100,0,100);
+                break;
+            case '2':
+                print_frame(frame2, 100,0,100);
+                break;
+            case '3':
+                print_frame(frame3, 100,0,100);
+                break;
+            case '4':
+                print_frame(frame4, 100,0,100);
+                break;
+            case '5':
+                print_frame(frame5, 100,0,100);
+                break;
+            case '6':
+                print_frame(frame6, 100,0,100);
+                break;
+            case '7':
+                print_frame(frame7, 100,0,100);
+                break;
+            case '8':
+                print_frame(frame8, 100,0,100);
+                break;
+            case '9':
+                print_frame(frame9, 100,0,100);
+                break;
+            default:
+                npClear();
+                break;
+            }      
+
+        }
     }
 }
