@@ -10,9 +10,10 @@
 // I2C defines
 // This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define I2C_PORT i2c0
-#define I2C_SDA 8
-#define I2C_SCL 9
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define address 0x3C
 
 //UART defines
 #define UART_ID uart0       //define a uart a ser utilizada, nesse caso, uart0
@@ -23,9 +24,13 @@
 #define buttonA 5           //pino do botão A
 #define buttonB 6           //pino do botão B
 
+bool color = true;  //variavel que indica que se o pixel está ligado ou desligado
+ssd1306_t ssd; // Inicializa a estrutura do display
+
 uint last_time = 0;
 
-const uint rgb_led[3] = {13,11,12};
+const uint rgb_led[3] = {13,11,12}; //pinos do led rgb
+bool g, b = 0;  //auxiliares para a controle do display
 
 void init_rgb(const uint *rgb)
 {
@@ -59,24 +64,91 @@ void gpio_irq_handler(uint gpio, uint32_t events)
 
         last_time = current_time; 
 
+        ssd1306_fill(&ssd, !color); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 58, color, !color); // Desenha um retângulo
+
         if(gpio == buttonA)
         {
-            uart_puts(UART_ID, "\n\r interrupção em A. Estado do LED verde alternado.");  
+            uart_puts(UART_ID, "\n\n\rInterrupção em A.");  
             gpio_put(rgb_led[1], !gpio_get(rgb_led[1]));
-            //falta enviar a mensagem para o display
+
+            ssd1306_draw_string(&ssd, "LED Verde", 30, 20); // Desenha uma string    
+            if(gpio_get(rgb_led[1]))
+            {
+                ssd1306_draw_string(&ssd, "Ligado", 42, 30);
+                uart_puts(UART_ID,  "\n\rLED verde ligado.\n");
+                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+            }else
+            {
+                ssd1306_draw_string(&ssd, "Desligado", 30, 30);
+                uart_puts(UART_ID,  "\n\rLED verde desligado.\n");
+                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+            }
 
         }else if (gpio == buttonB)    
         {
-            uart_puts(UART_ID, "\n\r interrupção em B. Estado do LED azul alternado.");
+            uart_puts(UART_ID, "\n\n\rInterrupção em B.");
             gpio_put(rgb_led[2], !gpio_get(rgb_led[2]));
-            //falta enviar a mensagem para o display
+            ssd1306_draw_string(&ssd, "LED Azul", 30, 20); // Desenha uma string    
+            if(gpio_get(rgb_led[2]))
+            {
+                ssd1306_draw_string(&ssd, "Ligado", 42, 30);
+                uart_puts(UART_ID,  "\n\rLED azul ligado.\n");
+                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+            }else
+            {
+                ssd1306_draw_string(&ssd, "Desligado", 30, 30);
+                uart_puts(UART_ID,  "\n\rLED azul desligado.\n");
+                uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
 
-        }   
+            }   
+        }  
 
+        ssd1306_send_data(&ssd); // Atualiza o display
     }
 }
 
 
+void checkDigit(char c) {
+
+    switch (c)
+    {
+    case '0':
+        print_frame(frame0, 100,0,100);
+        break;
+    case '1':
+        print_frame(frame1, 100,0,100);
+        break;
+    case '2':
+        print_frame(frame2, 100,0,100);
+        break;
+    case '3':
+        print_frame(frame3, 100,0,100);
+        break;
+    case '4':
+        print_frame(frame4, 100,0,100);
+        break;
+    case '5':
+        print_frame(frame5, 100,0,100);
+        break;
+    case '6':
+        print_frame(frame6, 100,0,100);
+        break;
+    case '7':
+        print_frame(frame7, 100,0,100);
+        break;
+    case '8':
+        print_frame(frame8, 100,0,100);
+        break;
+    case '9':
+        print_frame(frame9, 100,0,100);
+        break;
+    default:
+        npClear();
+        break;
+    }  
+
+}
 
 int main()
 {
@@ -89,79 +161,77 @@ int main()
     npInit(LED_PIN);        //inicializa matriz de led
     npClear();              //limpa a matriz
 
-    gpio_set_irq_enabled_with_callback(buttonA, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
-    gpio_set_irq_enabled_with_callback(buttonB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+    gpio_set_irq_enabled_with_callback(buttonA, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);   //ativa a interrupção no pino do botão A
+    gpio_set_irq_enabled_with_callback(buttonB, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);   //ativa a interrupção no pino do botão B
  
 
-    // I2C Initialisation. Using it at 400Khz.
-    // i2c_init(I2C_PORT, 400*1000);
+   // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400*1000);
     
-    // gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    // gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    // gpio_pull_up(I2C_SDA);
-    // gpio_pull_up(I2C_SCL);
-    // // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
+
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, address, I2C_PORT); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+  
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
 
     // inicializa a uart
     uart_init(UART_ID, BAUD_RATE);
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
     
-    // // Use some the various UART functions to send out data
-    // // In a default system, printf will also output via the default UART
-    
-    // // Send out a string, with CR/LF conversions
-    // uart_puts(UART_ID, " Hello, UART!\n");
-    
-    // For more examples of UART use see https://github.com/raspberrypi/pico-examples/tree/master/uart
     uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
+
+    
 
     while (true) {
         if(uart_is_readable(UART_ID))
         {   
+            printf("\n\nTeste\n\n");
             c = uart_getc(UART_ID);
             uart_puts(UART_ID, "\n\rCaractere Inserido: ");
             uart_putc(UART_ID, c);
-            uart_puts(UART_ID, "\n\rInsira o caracter que deseja imprimir: ");
-
-
-            switch (c)
+            uart_puts(UART_ID, "\n\n\rInsira o caracter que deseja imprimir: ");
+            
+            if(c == 'c' || c == 'C')
             {
-            case '0':
-                print_frame(frame0, 100,0,100);
-                break;
-            case '1':
-                print_frame(frame1, 100,0,100);
-                break;
-            case '2':
-                print_frame(frame2, 100,0,100);
-                break;
-            case '3':
-                print_frame(frame3, 100,0,100);
-                break;
-            case '4':
-                print_frame(frame4, 100,0,100);
-                break;
-            case '5':
-                print_frame(frame5, 100,0,100);
-                break;
-            case '6':
-                print_frame(frame6, 100,0,100);
-                break;
-            case '7':
-                print_frame(frame7, 100,0,100);
-                break;
-            case '8':
-                print_frame(frame8, 100,0,100);
-                break;
-            case '9':
-                print_frame(frame9, 100,0,100);
-                break;
-            default:
-                npClear();
-                break;
-            }      
+                ssd1306_fill(&ssd, !color); // Limpa o display
+                ssd1306_rect(&ssd, 3, 3, 122, 58, color, !color); // Desenha um retângulo
+                ssd1306_draw_char(&ssd, c, 59, 27); // Desenha o caractere digitado
+                ssd1306_send_data(&ssd);
+                
+                sleep_ms(500);
+
+                ssd1306_fill(&ssd, !color); // Limpa o display
+                ssd1306_rect(&ssd, 3, 3, 122, 58, color, !color); // Desenha um retângulo
+                ssd1306_draw_string(&ssd, "Desligando a", 15, 27);
+                ssd1306_draw_string(&ssd, "Tela", 45, 40);
+                ssd1306_send_data(&ssd);
+
+                sleep_ms(1000);
+
+                ssd1306_fill(&ssd, !color); // Limpa o display
+                ssd1306_send_data(&ssd);
+                uart_puts(UART_ID, "\n\n\rTela Desligada! ");
+                uart_puts(UART_ID, "\n\n\rInsira o caracter que deseja imprimir: ");
+
+                continue;
+            }
+
+            ssd1306_fill(&ssd, !color); // Limpa o display
+            ssd1306_rect(&ssd, 3, 3, 122, 58, color, !color); // Desenha um retângulo
+            ssd1306_draw_char(&ssd, c, 59, 27); // Desenha o caractere digitado
+            ssd1306_send_data(&ssd);    // Envia os dados para a matriz 
+            
+            checkDigit(c);  // Checa se o caractere digitado foi um digito de 0 a 9 e o desenha na matriz 5x5 ws2812
 
         }
-    }
+     }
 }

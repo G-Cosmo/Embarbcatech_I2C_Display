@@ -32,15 +32,15 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
-      "top": 207.8,
-      "left": -57.6,
+      "top": 275,
+      "left": -48,
       "attrs": { "color": "green" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn2",
-      "top": 150.2,
-      "left": -57.6,
+      "top": 227,
+      "left": -48,
       "attrs": { "color": "green" }
     },
     { "type": "wokwi-gnd", "id": "gnd1", "top": 420, "left": -220, "attrs": {} },
@@ -88,7 +88,7 @@
     [ "pico:GP1", "$serialMonitor:TX", "", [] ],
     [ "pico:GP7", "rgb1:DIN", "green", [ "h-86.4", "v-28.8" ] ],
     [ "pico:GP5", "btn1:2.l", "red", [ "h-38.4", "v-153.6" ] ],
-    [ "pico:GP6", "btn2:2.l", "red", [ "h-48", "v-230.4", "h28.8" ] ],
+    [ "pico:GP6", "btn2:2.l", "red", [ "h-48", "v-153.6", "h38.4" ] ],
     [ "btn1:1.r", "pico:GND.8", "black", [ "v0", "h38.6", "v134.4" ] ],
     [ "btn2:1.r", "pico:GND.8", "black", [ "h38.6", "v192" ] ],
     [ "rgb1:DOUT", "rgb2:DIN", "green", [ "h0" ] ],

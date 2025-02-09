@@ -45,7 +45,7 @@ pico_set_program_version(Display_I2C "0.1")
 pico_generate_pio_header(Display_I2C ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Display_I2C 0)
+pico_enable_stdio_uart(Display_I2C 1)
 pico_enable_stdio_usb(Display_I2C 1)
 
 # Add the standard library to the build
